@@ -1,0 +1,235 @@
+.App-header {
+  background-color: #282c34;
+  padding: 20px;
+  color: white;
+  text-align: center; /* Center the header */
+}
+.App-header .logo {
+  background-color: white;
+  padding: 20px;
+  color: white;
+}
+nav ul {
+  list-style-type: none;
+  padding: 0;
+  display: flex;
+  justify-content: center; /* Center the buttons */
+}
+
+nav ul li {
+  display: inline;
+  margin-right: 10px;
+}
+
+nav ul li a {
+  color: white;
+  text-decoration: none;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Encabezado */
+.header {
+    display: flex;
+    justify-content: center; /* Center the header */
+    align-items: center;
+    border-bottom: #4c692ac9 2px solid;
+}
+
+.menu-ul {
+    display: flex;
+    justify-content: center; /* Center the buttons */
+}
+
+ul li {
+    list-style: none;
+    border: solid 2px;
+    border-bottom: solid 4px;
+    color: #4c692ac9;
+}
+
+ul li:hover {
+    background-color: #abec5667;
+    border: 2px solid #b3ec68;
+}
+
+ul li a {
+    color: #2d3f19;
+    margin: 40px;
+    padding: 10px;
+    text-decoration: none;
+}
+
+/* Estilo base para la página */
+body {
+    font-family: 'Noto Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Título */
+h1 {
+    text-align: center;
+    margin-top: 20px;
+    color: #2d3f19;
+    font-size: 2em; /* Ensure consistent font size */
+}
+
+/* Contenedor principal */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px; /* Espacio entre el logo y el formulario */
+    margin: 20px;
+}
+
+.form-container {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Espacio entre el formulario y el logo */
+}
+
+.list-container {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #4c692ac9;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(184, 235, 183, 0.1);
+    background-color: #ffffff;
+}
+
+/* Estilo para las entradas */
+.entradas p {
+    margin: 10px 0;
+}
+
+.entradas label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2d3f19;
+}
+
+.entradas input {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #d6f1b3;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.tres-entrada p {
+    margin: 10px 0;
+}
+
+.tres-entrada label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2d3f19;
+}
+
+.tres-entrada input {
+    width: 90%;
+    padding: 8px;
+    border: 1px solid #d6f1b3;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Botones */
+.botones-acep-cancel {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Espacio entre los botones */
+}
+
+.botones-acep-cancel button {
+    padding: 10px 20px;
+    font-size: 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-cancelar {
+    background-color: #f03c2fd8;
+    color: #000000;
+}
+
+.btn-aceptar {
+    background-color: #5fd841d8;
+    color: #000000;
+}
+
+.btn-cancelar:hover {
+    background-color: #d32f2f;
+}
+
+.btn-aceptar:hover {
+    background-color: #388E3C;
+}
+
+/* Estilo para el logo */
+.logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px; /* Adjust the margin to move the logo container */
+}
+
+.logo {
+    max-width: 50%;
+    height: auto;
+    /* You can also use position properties if needed */
+    /* position: relative; */
+    /* top: 10px; */
+    /* left: 10px; */
+}
+
+.entradas {
+    text-align: left; /* Alinea las entradas al borde izq */
+    margin-right: 50px;
+}
+
+/* Estilo para el contenedor del vendedor */
+.vendedor-container {
+    border: 1px solid #4c692ac9;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Estilo para el contenedor del pedido */
+.pedido-container {
+    border: 1px solid #4c692ac9;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+/* Estilo para la lista de items */
+.item-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+}
