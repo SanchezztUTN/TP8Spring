@@ -8,4 +8,5 @@ public interface PedidoDAO {
     void actualizarPedido(Pedido pedido);
     void eliminarPedido(long id);
     Set<Pedido> listarPedidos();
+    void actualizarPago(Pago pago);
 }

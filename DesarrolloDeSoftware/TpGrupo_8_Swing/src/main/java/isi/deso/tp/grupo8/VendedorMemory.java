@@ -69,7 +69,7 @@ public class VendedorMemory implements VendedorDAO {
 
     @Override
     public Vendedor buscarVendedor(long id) {
-        String sql = "SELECT v.*, c.latitud, c.longitud FROM vendedor v JOIN coordenadas c ON v.id_coordenada = c.id_coordenada WHERE v.id_vendedor = ?";
+        String sql = "SELECT v.*, c.latitud, c.longitud FROM vendedor v JOIN coordenadas c ON v.id_coordenada = c.id_coordenada WHERE v.id_vendedor = ? AND v.deleted = FALSE";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -136,27 +136,11 @@ public class VendedorMemory implements VendedorDAO {
 
     @Override
     public void eliminarVendedor(long id) {
-        String deleteRelacionSQL = "DELETE FROM vendedor_itemmenu WHERE id_vendedor = ?";
-        String deleteVendedorSQL = "DELETE FROM vendedor WHERE id_vendedor = ?";
-        
-        try (PreparedStatement stmtRelacion = connection.prepareStatement(deleteRelacionSQL);
-             PreparedStatement stmtVendedor = connection.prepareStatement(deleteVendedorSQL)) {
-            
-            // Borrar relaciones en vendedor_itemmenu
-            stmtRelacion.setLong(1, id);
-            stmtRelacion.executeUpdate();
-            
-            // Borrar el vendedor
-            stmtVendedor.setLong(1, id);
-            int rowsAffected = stmtVendedor.executeUpdate();
-            
-            if (rowsAffected > 0) {
-                System.out.println("Vendedor eliminado correctamente.");
-            } else {
-                System.out.println("No se encontró un vendedor con el ID especificado.");
-            }
+        String sqlMarkAsDeleted = "UPDATE vendedor SET deleted = TRUE WHERE id_vendedor = ?";
+        try (PreparedStatement stmtMarkAsDeleted = connection.prepareStatement(sqlMarkAsDeleted)) {
+            stmtMarkAsDeleted.setLong(1, id);
+            stmtMarkAsDeleted.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error al eliminar vendedor: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -164,7 +148,7 @@ public class VendedorMemory implements VendedorDAO {
     @Override
     public Set<Vendedor> listarVendedores() {
         Set<Vendedor> vendedores = new HashSet<>();
-        String sql = "SELECT * FROM vendedor";
+        String sql = "SELECT * FROM vendedor WHERE deleted = FALSE";
         try (PreparedStatement stmt = connection.prepareStatement(sql);
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
@@ -187,6 +171,18 @@ public class VendedorMemory implements VendedorDAO {
     @Override
     public void agregarItemMenu(long idVendedor, long idItemMenu) {
         String sql = "INSERT INTO vendedor_itemmenu (id_vendedor, id_itemMenu) VALUES (?, ?)";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setLong(1, idVendedor);
+            stmt.setLong(2, idItemMenu);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void eliminarItemMenu(long idVendedor, long idItemMenu) {
+        String sql = "DELETE FROM vendedor_itemmenu WHERE id_vendedor = ? AND id_itemMenu = ?";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setLong(1, idVendedor);
             stmt.setLong(2, idItemMenu);

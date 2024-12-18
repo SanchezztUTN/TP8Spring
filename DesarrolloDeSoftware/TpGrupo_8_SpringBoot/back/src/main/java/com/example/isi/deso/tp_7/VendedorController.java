@@ -47,4 +47,9 @@ public class VendedorController {
     public Set<ItemMenu> listarItemsMenu(@PathVariable long id) {
         return vendedorService.listarItemsMenu(id);
     }
+
+    @DeleteMapping("/{vendedorId}/items/{itemId}")
+    public Vendedor eliminarItemMenu(@PathVariable long vendedorId, @PathVariable long itemId) {
+        return vendedorService.eliminarItemMenu(vendedorId, itemId);
+    }
 }

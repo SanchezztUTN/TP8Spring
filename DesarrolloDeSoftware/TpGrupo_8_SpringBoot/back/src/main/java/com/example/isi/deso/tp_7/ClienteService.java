@@ -38,10 +38,15 @@ public class ClienteService {
     }
 
     public void eliminarCliente(long id) {
-        clienteRepository.deleteById(id);
+        Optional<Cliente> clienteOpt = clienteRepository.findById(id);
+        if (clienteOpt.isPresent()) {
+            Cliente cliente = clienteOpt.get();
+            cliente.setDeleted(true);
+            clienteRepository.save(cliente);
+        }
     }
 
     public List<Cliente> listarClientes() {
-        return clienteRepository.findAll();
+        return clienteRepository.findByDeletedFalse();
     }
 }

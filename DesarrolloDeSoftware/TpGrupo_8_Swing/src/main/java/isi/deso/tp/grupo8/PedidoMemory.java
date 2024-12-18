@@ -97,13 +97,14 @@ public class PedidoMemory implements PedidoDAO {
             actualizarPago(pedido.getPago());
 
             // Update the order
-            String sql = "UPDATE pedido SET estado = ?, id_cliente = ?, id_vendedor = ?, id_pago = ? WHERE id_pedido = ?";
+            String sql = "UPDATE pedido SET estado = ?, id_cliente = ?, id_vendedor = ?, id_pago = ?, metodo_pago = ? WHERE id_pedido = ?";
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
                 stmt.setString(1, pedido.getEstado().toString());
                 stmt.setLong(2, pedido.getCliente().getId());
                 stmt.setLong(3, pedido.getVendedor().getId());
                 stmt.setLong(4, pedido.getPago().getId());
-                stmt.setLong(5, pedido.getId());
+                stmt.setString(5, pedido.getMetodoDePago());
+                stmt.setLong(6, pedido.getId());
                 stmt.executeUpdate();
             }
 
@@ -136,35 +137,6 @@ public class PedidoMemory implements PedidoDAO {
         }
         
     }
-
-    private void actualizarPago(Pago pago) throws SQLException {
-        String sqlPago = "UPDATE pago SET monto = ?, fecha = ? WHERE id_pago = ?";
-        try (PreparedStatement stmtPago = connection.prepareStatement(sqlPago)) {
-            stmtPago.setDouble(1, pago.getMonto());
-            stmtPago.setDate(2, java.sql.Date.valueOf(pago.getFecha()));
-            stmtPago.setLong(3, pago.getId());
-            stmtPago.executeUpdate();
-        }
-
-        if (pago instanceof PagoPorMP) {
-            String sqlMP = "UPDATE pagopormp SET alias = ?, recargo = ? WHERE id_pago = ?";
-            try (PreparedStatement stmtMP = connection.prepareStatement(sqlMP)) {
-                stmtMP.setString(1, ((PagoPorMP) pago).getAlias());
-                stmtMP.setDouble(2, ((PagoPorMP) pago).getRecargo());
-                stmtMP.setLong(3, pago.getId());
-                stmtMP.executeUpdate();
-            }
-        } else if (pago instanceof PagoPorTransferencia) {
-            String sqlTransf = "UPDATE pagoportransferencia SET cbu = ?, cuit = ? WHERE id_pago = ?";
-            try (PreparedStatement stmtTransf = connection.prepareStatement(sqlTransf)) {
-                stmtTransf.setString(1, ((PagoPorTransferencia) pago).getCbu());
-                stmtTransf.setString(2, ((PagoPorTransferencia) pago).getCuit());
-                stmtTransf.setLong(3, pago.getId());
-                stmtTransf.executeUpdate();
-            }
-        }
-    }
-
     @Override
     public void eliminarPedido(long id) {
         try {
@@ -332,6 +304,59 @@ public class PedidoMemory implements PedidoDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    @Override
+    public void actualizarPago(Pago pago) {
+        String sqlPago = "UPDATE pago SET monto = ?, fecha = ? WHERE id_pago = ?";
+        try (PreparedStatement stmtPago = connection.prepareStatement(sqlPago)) {
+            stmtPago.setDouble(1, pago.getMonto());
+            stmtPago.setDate(2, java.sql.Date.valueOf(pago.getFecha()));
+            stmtPago.setLong(3, pago.getId());
+            stmtPago.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Delete old payment type record
+        String sqlDeleteOldPaymentTypeMP = "DELETE FROM pagopormp WHERE id_pago = ?";
+        String sqlDeleteOldPaymentTypeTransf = "DELETE FROM pagoportransferencia WHERE id_pago = ?";
+        try (PreparedStatement stmtDeleteOldPaymentTypeMP = connection.prepareStatement(sqlDeleteOldPaymentTypeMP);
+             PreparedStatement stmtDeleteOldPaymentTypeTransf = connection.prepareStatement(sqlDeleteOldPaymentTypeTransf)) {
+            stmtDeleteOldPaymentTypeMP.setLong(1, pago.getId());
+            stmtDeleteOldPaymentTypeTransf.setLong(1, pago.getId());
+            stmtDeleteOldPaymentTypeMP.executeUpdate();
+            stmtDeleteOldPaymentTypeTransf.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Insert new payment type record
+        if (pago instanceof PagoPorMP) {
+            String sqlMP = "INSERT INTO pagopormp (id_pago, alias, recargo, monto, fecha) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement stmtMP = connection.prepareStatement(sqlMP)) {
+                stmtMP.setLong(1, pago.getId());
+                stmtMP.setString(2, ((PagoPorMP) pago).getAlias());
+                stmtMP.setDouble(3, ((PagoPorMP) pago).getRecargo());
+                stmtMP.setDouble(4, pago.getMonto());
+                stmtMP.setDate(5, java.sql.Date.valueOf(pago.getFecha()));
+                stmtMP.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else if (pago instanceof PagoPorTransferencia) {
+            String sqlTransf = "INSERT INTO pagoportransferencia (id_pago, cbu, cuit, recargo, monto, fecha) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement stmtTransf = connection.prepareStatement(sqlTransf)) {
+                stmtTransf.setLong(1, pago.getId());
+                stmtTransf.setString(2, ((PagoPorTransferencia) pago).getCbu());
+                stmtTransf.setString(3, ((PagoPorTransferencia) pago).getCuit());
+                stmtTransf.setDouble(4, ((PagoPorTransferencia) pago).getRecargo());
+                stmtTransf.setDouble(5, pago.getMonto());
+                stmtTransf.setDate(6, java.sql.Date.valueOf(pago.getFecha()));
+                stmtTransf.executeUpdate();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 

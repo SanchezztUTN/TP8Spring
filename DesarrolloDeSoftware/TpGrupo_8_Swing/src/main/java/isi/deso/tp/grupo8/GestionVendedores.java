@@ -16,12 +16,13 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 public class GestionVendedores extends JFrame {
-    private VendedorController controlador;
-    private ItemsMenuController itemsMenuController;
-    private JTextField txtID, txtNombre, txtDireccion, txtLatitud, txtLongitud;
-    private JTextArea areaResultados;
-    private JButton btnCrear, btnBuscar, btnModificar, btnEliminar, btnListar, btnMostrarProductos, btnListarTodosItems, btnAgregarItemMenu;
-    private JList<ItemMenu> listItemsMenu;
+    VendedorController controlador;
+    ItemsMenuController itemsMenuController;
+    JTextField txtID, txtNombre, txtDireccion, txtLatitud, txtLongitud;
+    JTextArea areaResultados;
+    JButton btnCrear, btnBuscar, btnModificar, btnEliminar, btnListar, btnMostrarProductos, btnListarTodosItems, btnAgregarItemMenu;
+    JList<ItemMenu> listItemsMenu;
+    JButton btnEliminarItemMenu;
 
     public GestionVendedores(VendedorController controlador, ItemsMenuController itemsMenuController) {
         this.controlador = controlador;
@@ -48,6 +49,7 @@ public class GestionVendedores extends JFrame {
         btnMostrarProductos = new JButton("Mostrar Productos");
         btnListarTodosItems = new JButton("Listar Todos los Items");
         btnAgregarItemMenu = new JButton("Agregar ItemMenu");
+        btnEliminarItemMenu = new JButton("Eliminar ItemMenu");
 
         listItemsMenu = new JList<>();
         listItemsMenu.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
@@ -70,6 +72,7 @@ public class GestionVendedores extends JFrame {
         add(btnMostrarProductos);
         add(btnListarTodosItems);
         add(btnAgregarItemMenu);
+        add(btnEliminarItemMenu);
         add(new JScrollPane(areaResultados));
         add(new JScrollPane(listItemsMenu));
 
@@ -81,49 +84,48 @@ public class GestionVendedores extends JFrame {
         btnMostrarProductos.addActionListener(this::mostrarProductosVendedor);
         btnListarTodosItems.addActionListener(this::listarTodosItems);
         btnAgregarItemMenu.addActionListener(this::agregarItemMenuAVendedor);
+        btnEliminarItemMenu.addActionListener(this::eliminarItemMenuDeVendedor);
 
         setVisible(true);
     }
 
     private void crearVendedor(ActionEvent e) {
-    try {
-        String nombre = txtNombre.getText();
-        String direccion = txtDireccion.getText();
+        try {
+            String nombre = txtNombre.getText();
+            String direccion = txtDireccion.getText();
 
-        // Validar que los campos de latitud y longitud no estén vacíos
-        if (txtLatitud.getText().isEmpty() || txtLongitud.getText().isEmpty()) {
-            areaResultados.setText("Por favor, completa todos los campos.");
-            return; // Detener la ejecución si algún campo está vacío
+            // Validar que los campos de latitud y longitud no estén vacíos
+            if (txtLatitud.getText().isEmpty() || txtLongitud.getText().isEmpty()) {
+                areaResultados.setText("Por favor, completa todos los campos.");
+                return; // Detener la ejecución si algún campo está vacío
+            }
+
+            // Convertir latitud y longitud a double
+            double latitud = Double.parseDouble(txtLatitud.getText());
+            double longitud = Double.parseDouble(txtLongitud.getText());
+
+            System.out.println("Latitud: " + latitud);
+            System.out.println("Longitud: " + longitud);
+
+            // Crear la coordenada con latitud y longitud (sin ID, se asignará automáticamente)
+            Coordenada c1 = new Coordenada(longitud, latitud); // ID de coordenada aún no asignado
+
+            // Guardar la coordenada en la base de datos
+            CoordenadaDAO coordenadaDAO = new CoordenadaDAO();
+            coordenadaDAO.save(c1); // Esto debería generar un ID para la coordenada
+            System.out.println("id " + c1.getId());
+            // Crear el vendedor con la coordenada existente o recién creada
+            controlador.crearNuevoVendedor(nombre, direccion, c1);
+            areaResultados.setText("Vendedor creado: " + nombre);
+
+        } catch (NumberFormatException ex) {
+            areaResultados.setText("Por favor, ingresa valores válidos en los campos numéricos.");
+            ex.printStackTrace(); // Puedes registrar el error para depuración
+        } catch (Exception ex) {
+            areaResultados.setText("Ocurrió un error al crear el vendedor: " + ex.getMessage());
+            ex.printStackTrace();
         }
-
-        // Convertir latitud y longitud a double
-        double latitud = Double.parseDouble(txtLatitud.getText());
-        double longitud = Double.parseDouble(txtLongitud.getText());
-
-        System.out.println("Latitud: " + latitud);
-        System.out.println("Longitud: " + longitud);
-
-        // Crear la coordenada con latitud y longitud (sin ID, se asignará automáticamente)
-        Coordenada c1 = new Coordenada(longitud, latitud); // ID de coordenada aún no asignado
-
-        // Guardar la coordenada en la base de datos
-        CoordenadaDAO coordenadaDAO = new CoordenadaDAO();
-        coordenadaDAO.save(c1); // Esto debería generar un ID para la coordenada
-    System.out.println("id " + c1.getId());
-        // Crear el vendedor con la coordenada existente o recién creada
-        controlador.crearNuevoVendedor(nombre, direccion, c1);
-        areaResultados.setText("Vendedor creado: " + nombre);
-
-    } catch (NumberFormatException ex) {
-        areaResultados.setText("Por favor, ingresa valores válidos en los campos numéricos.");
-        ex.printStackTrace(); // Puedes registrar el error para depuración
-    } catch (Exception ex) {
-        areaResultados.setText("Ocurrió un error al crear el vendedor: " + ex.getMessage());
-        ex.printStackTrace();
     }
-}
-
-
 
     private void buscarVendedor(ActionEvent e) {
         try {
@@ -249,11 +251,24 @@ public class GestionVendedores extends JFrame {
         }
     }
 
+    private void eliminarItemMenuDeVendedor(ActionEvent e) {
+        try {
+            long idVendedor = Long.parseLong(txtID.getText());
+            for (ItemMenu item : listItemsMenu.getSelectedValuesList()) {
+                controlador.eliminarItemMenuDeVendedor(idVendedor, item.getId());
+            }
+            areaResultados.setText("Items eliminados del vendedor exitosamente.");
+        } catch (NumberFormatException ex) {
+            areaResultados.setText("Por favor, ingresa un ID válido.");
+        } catch (Exception ex) {
+            areaResultados.setText("Error al eliminar items: " + ex.getMessage());
+        }
+    }
 
     public static void main(String[] args) throws SQLException {
         VendedorMemory vendedorMemory = new VendedorMemory();
         ItemsMenuMemory itemsMenuMemory = new ItemsMenuMemory();
-        VendedorController controlador = new VendedorController(vendedorMemory,itemsMenuMemory);
+        VendedorController controlador = new VendedorController(vendedorMemory, itemsMenuMemory);
         ItemsMenuController itemsMenuController = new ItemsMenuController(itemsMenuMemory);
         new GestionVendedores(controlador, itemsMenuController);
     }

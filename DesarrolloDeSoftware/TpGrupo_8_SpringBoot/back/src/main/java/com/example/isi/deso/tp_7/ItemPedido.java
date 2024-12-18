@@ -1,4 +1,4 @@
-package com.example.isi.deso.tp_7;
+/*package com.example.isi.deso.tp_7;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
@@ -49,3 +49,4 @@ public class ItemPedido {
         this.pedido = pedido;
     }
 }
+    /**/

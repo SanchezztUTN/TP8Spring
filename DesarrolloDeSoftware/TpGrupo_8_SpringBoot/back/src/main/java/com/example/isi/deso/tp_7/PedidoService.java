@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 @Service
 public class PedidoService {
@@ -40,6 +42,7 @@ public class PedidoService {
 
         // Validate and calculate total price
         double totalPrice = 0;
+        Set<ItemMenu> items = new HashSet<>();
         for (Long itemId : itemMenuIds) {
             Optional<ItemMenu> itemOpt = itemMenuRepository.findById(itemId);
             if (!itemOpt.isPresent()) {
@@ -50,9 +53,7 @@ public class PedidoService {
                 throw new IllegalArgumentException("ItemMenu with ID " + itemId + " is not sold by Vendedor with ID " + vendedorId);
             }
             totalPrice += item.getPrecio();
-            ItemPedido itemPedido = new ItemPedido(item);
-            itemPedido.setPedido(pedido);
-            pedido.getItemsPedidoMemory().add(itemPedido);
+            items.add(item);
         }
 
         // Create Pago
@@ -73,6 +74,7 @@ public class PedidoService {
         pedido.setCliente(cliente);
         pedido.setPago(pago);
         pedido.setTotalPrice(totalPrice);
+        pedido.setItems(items);
 
         return pedidoRepository.save(pedido);
     }
@@ -81,7 +83,60 @@ public class PedidoService {
         return pedidoRepository.findById(id);
     }
 
-    public Pedido actualizarPedido(Pedido pedido) {
+    public Pedido actualizarPedido(Pedido pedido, long vendedorId, long clienteId, List<Long> itemMenuIds, String tipoPago) {
+        // Validate Vendedor
+        Optional<Vendedor> vendedorOpt = vendedorRepository.findById(vendedorId);
+        if (!vendedorOpt.isPresent()) {
+            throw new IllegalArgumentException("Vendedor with ID " + vendedorId + " does not exist.");
+        }
+        Vendedor vendedor = vendedorOpt.get();
+
+        // Validate Cliente
+        Optional<Cliente> clienteOpt = clienteRepository.findById(clienteId);
+        if (!clienteOpt.isPresent()) {
+            throw new IllegalArgumentException("Cliente with ID " + clienteId + " does not exist.");
+        }
+        Cliente cliente = clienteOpt.get();
+
+        // Clear existing ItemMenu relations
+        pedido.getItems().clear();
+
+        // Validate and calculate total price
+        double totalPrice = 0;
+        Set<ItemMenu> newItems = new HashSet<>();
+        for (Long itemId : itemMenuIds) {
+            Optional<ItemMenu> itemOpt = itemMenuRepository.findById(itemId);
+            if (!itemOpt.isPresent()) {
+                throw new IllegalArgumentException("ItemMenu with ID " + itemId + " does not exist.");
+            }
+            ItemMenu item = itemOpt.get();
+            if (!vendedor.getList().contains(item)) {
+                throw new IllegalArgumentException("ItemMenu with ID " + itemId + " is not sold by Vendedor with ID " + vendedorId);
+            }
+            totalPrice += item.getPrecio();
+            newItems.add(item);
+        }
+
+        // Update Pago
+        Pago pago;
+        if ("MP".equalsIgnoreCase(tipoPago)) {
+            pago = new PagoMP(totalPrice=totalPrice * 1.4, cliente.getAlias());
+            pedido.setMetodoDePago("MP");
+        } else if ("Transferencia".equalsIgnoreCase(tipoPago)) {
+            pago = new PagoTransferencia(totalPrice=totalPrice* 1.2, cliente.getCbu(), cliente.getCuit());
+            pedido.setMetodoDePago("Transferencia");
+        } else {
+            throw new IllegalArgumentException("Invalid payment type: " + tipoPago);
+        }
+        pago = pagoRepository.save(pago);
+
+        // Set Pedido details
+        pedido.setVendedor(vendedor);
+        pedido.setCliente(cliente);
+        pedido.setPago(pago);
+        pedido.setTotalPrice(totalPrice);
+        pedido.setItems(newItems);
+
         return pedidoRepository.save(pedido);
     }
 
@@ -93,11 +148,11 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
-    public List<ItemPedido> listarItemsPedido(long pedidoId) {
+    public Set<ItemMenu> listarItemsPedido(long pedidoId) {
         Optional<Pedido> pedidoOpt = pedidoRepository.findById(pedidoId);
         if (!pedidoOpt.isPresent()) {
             throw new IllegalArgumentException("Pedido with ID " + pedidoId + " does not exist.");
         }
-        return pedidoOpt.get().getItemsPedidoMemory();
+        return pedidoOpt.get().getItems();
     }
 }

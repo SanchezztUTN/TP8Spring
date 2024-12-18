@@ -14,7 +14,22 @@ public abstract class ItemMenu {
     public abstract boolean esAlcoholica();
     public abstract String toString();
     public abstract double getPrecio();
+public  ItemMenu(){
+    
+}
+    public ItemMenu(long id, String nombre, String descripcion, double precio, Categoria categoria) {
 
+        this.id = id;
+
+        this.nombre = nombre;
+
+        this.descripcion = descripcion;
+
+        this.precio = precio;
+
+        this.categoria = categoria;
+
+    }
     public String getNombre() {
         return nombre;
     }

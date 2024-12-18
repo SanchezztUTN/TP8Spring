@@ -14,6 +14,9 @@ public class ItemMenuService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
+    @Autowired
+    private VendedorRepository vendedorRepository;
+
     public String crearItem(ItemMenu item) {
         // Check if the Categoria exists
         Categoria categoria = item.getCategoria();
@@ -30,7 +33,7 @@ public class ItemMenuService {
     }
 
     public Optional<ItemMenu> buscarItem(long id) {
-        return itemMenuRepository.findById(id);
+        return itemMenuRepository.findActiveById(id);
     }
 
     public String actualizarItem(ItemMenu item) {
@@ -48,11 +51,20 @@ public class ItemMenuService {
         return "Item Actualizado";
     }
 
-    public void eliminarItem(long id) {
-        itemMenuRepository.deleteById(id);
+    public void eliminarItem(long id) throws ItemNoEncontradoException {
+        Optional<ItemMenu> itemOpt = itemMenuRepository.findById(id);
+        if (itemOpt.isPresent()) {
+            ItemMenu item = itemOpt.get();
+            
+            // Perform soft delete
+            item.setDeleted(true);
+            itemMenuRepository.save(item);
+        } else {
+            throw new ItemNoEncontradoException("ItemMenu with ID " + id + " does not exist.");
+        }
     }
 
     public List<ItemMenu> listarItems() {
-        return itemMenuRepository.findAll();
+        return itemMenuRepository.findAllActive();
     }
 }

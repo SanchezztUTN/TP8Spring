@@ -24,6 +24,7 @@ public abstract class ItemMenu {
     public String nombre;
     public double precio;
     public String descripcion;
+    private boolean deleted = false; // Add this field
 
     @ManyToOne
     private Categoria categoria;
@@ -70,5 +71,13 @@ public abstract class ItemMenu {
 
     public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

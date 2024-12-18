@@ -64,11 +64,16 @@ public class VendedorService {
     }
 
     public void eliminarVendedor(long id) {
-        vendedorRepository.deleteById(id);
+        Optional<Vendedor> vendedorOpt = vendedorRepository.findById(id);
+        if (vendedorOpt.isPresent()) {
+            Vendedor vendedor = vendedorOpt.get();
+            vendedor.setDeleted(true);
+            vendedorRepository.save(vendedor);
+        }
     }
 
     public List<Vendedor> listarVendedores() {
-        return vendedorRepository.findAll();
+        return vendedorRepository.findByDeletedFalse();
     }
 
     public Vendedor agregarItemMenu(long id, ItemMenu itemMenu) {
@@ -85,6 +90,16 @@ public class VendedorService {
         Optional<Vendedor> vendedorOpt = vendedorRepository.findById(id);
         if (vendedorOpt.isPresent()) {
             return vendedorOpt.get().getList();
+        }
+        return null;
+    }
+
+    public Vendedor eliminarItemMenu(long vendedorId, long itemId) {
+        Optional<Vendedor> vendedorOpt = vendedorRepository.findById(vendedorId);
+        if (vendedorOpt.isPresent()) {
+            Vendedor vendedor = vendedorOpt.get();
+            vendedor.getList().removeIf(item -> item.getId() == itemId);
+            return vendedorRepository.save(vendedor);
         }
         return null;
     }

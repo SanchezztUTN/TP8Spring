@@ -86,7 +86,7 @@ public class ItemsMenuMemory implements ItemMenuDAO {
 
     @Override
     public ItemMenu buscarItem(long id) {
-        String sqlItemMenu = "SELECT * FROM itemmenu WHERE id_itemMenu = ?";
+        String sqlItemMenu = "SELECT * FROM itemmenu WHERE id_itemMenu = ? AND deleted = FALSE";
         try (PreparedStatement stmtItemMenu = connection.prepareStatement(sqlItemMenu)) {
             stmtItemMenu.setLong(1, id);
             try (ResultSet rsItemMenu = stmtItemMenu.executeQuery()) {
@@ -195,59 +195,19 @@ public class ItemsMenuMemory implements ItemMenuDAO {
             
     @Override
 public void eliminarItem(long id) {
-    String sqlDeleteVendedorItemMenu = "DELETE FROM vendedor_itemmenu WHERE id_itemMenu = ?";
-    String sqlDeletePedidoItemMenu = "DELETE FROM pedido_itemmenu WHERE id_itemMenu = ?";
-    String sqlDeleteBebida = "DELETE FROM bebida WHERE id_itemMenu = ?";
-    String sqlDeletePlato = "DELETE FROM plato WHERE id_itemMenu = ?";
-    String sqlDeleteItemMenu = "DELETE FROM itemmenu WHERE id_itemMenu = ?";
-    try (PreparedStatement stmtDeleteVendedorItemMenu = connection.prepareStatement(sqlDeleteVendedorItemMenu);
-         PreparedStatement stmtDeletePedidoItemMenu = connection.prepareStatement(sqlDeletePedidoItemMenu);
-         PreparedStatement stmtDeleteBebida = connection.prepareStatement(sqlDeleteBebida);
-         PreparedStatement stmtDeletePlato = connection.prepareStatement(sqlDeletePlato);
-         PreparedStatement stmtDeleteItemMenu = connection.prepareStatement(sqlDeleteItemMenu)) {
-        connection.setAutoCommit(false); // Start transaction
-
-        // Delete from vendedor_itemmenu
-        stmtDeleteVendedorItemMenu.setLong(1, id);
-        stmtDeleteVendedorItemMenu.executeUpdate();
-
-        // Delete from pedido_itemmenu
-        stmtDeletePedidoItemMenu.setLong(1, id);
-        stmtDeletePedidoItemMenu.executeUpdate();
-
-        // Delete from bebida
-        stmtDeleteBebida.setLong(1, id);
-        stmtDeleteBebida.executeUpdate();
-
-        // Delete from plato
-        stmtDeletePlato.setLong(1, id);
-        stmtDeletePlato.executeUpdate();
-
-        // Delete from itemmenu
-        stmtDeleteItemMenu.setLong(1, id);
-        stmtDeleteItemMenu.executeUpdate();
-
-        connection.commit(); // Commit transaction
+    String sqlMarkAsDeleted = "UPDATE itemmenu SET deleted = TRUE WHERE id_itemMenu = ?";
+    try (PreparedStatement stmtMarkAsDeleted = connection.prepareStatement(sqlMarkAsDeleted)) {
+        stmtMarkAsDeleted.setLong(1, id);
+        stmtMarkAsDeleted.executeUpdate();
     } catch (SQLException e) {
-        try {
-            connection.rollback(); // Rollback transaction on error
-        } catch (SQLException rollbackEx) {
-            rollbackEx.printStackTrace();
-        }
         e.printStackTrace();
-    } finally {
-        try {
-            connection.setAutoCommit(true); // Reset auto-commit mode
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
     }
 }
 
   @Override
 public Set<ItemMenu> listarItems() {
     Set<ItemMenu> items = new HashSet<>();
-    String sqlItemMenu = "SELECT * FROM itemmenu";
+    String sqlItemMenu = "SELECT * FROM itemmenu WHERE deleted = FALSE";
     try (PreparedStatement stmtItemMenu = connection.prepareStatement(sqlItemMenu);
          ResultSet rsItemMenu = stmtItemMenu.executeQuery()) {
         while (rsItemMenu.next()) {

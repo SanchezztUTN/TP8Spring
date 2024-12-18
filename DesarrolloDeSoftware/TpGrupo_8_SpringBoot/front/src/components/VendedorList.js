@@ -59,6 +59,16 @@ const VendedorList = () => {
             });
     };
 
+    const deleteItemFromVendedor = (vendedorId, itemId) => {
+        axios.delete(`http://localhost:8080/vendedores/${vendedorId}/items/${itemId}`)
+            .then(() => {
+                fetchVendedorItems(vendedorId);
+            })
+            .catch(error => {
+                console.error('There was an error deleting the item from the vendedor!', error);
+            });
+    };
+
     const handleEdit = (vendedor) => {
         setEditingVendedor(vendedor);
     };
@@ -150,6 +160,7 @@ const VendedorList = () => {
                                                         <p><strong>Apto Vegetarianos:</strong> {item.aptoVegetarianos ? 'Sí' : 'No'}</p>
                                                     </>
                                                 )}
+                                                <button className="btn-cancelar" onClick={() => deleteItemFromVendedor(vendedor.id, item.id)}>Eliminar Item</button>
                                             </li>
                                         ))}
                                     </ul>

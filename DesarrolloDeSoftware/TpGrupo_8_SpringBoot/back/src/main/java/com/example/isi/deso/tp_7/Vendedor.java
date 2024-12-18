@@ -28,6 +28,8 @@ public class Vendedor {
     @JsonIgnore
     private List<Pedido> pedidos; // Lista para almacenar los pedidos
 
+    private boolean deleted = false;
+
     public Vendedor(long id, String nombre, String direc, Coordenada coor, Set<ItemMenu> lista) {
         this.id = id;
         this.nombre = nombre;
@@ -248,6 +250,13 @@ public class Vendedor {
         System.out.println(resultado.toString());
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
     
   
 }

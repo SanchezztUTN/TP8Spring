@@ -13,10 +13,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class GestionClientes extends JFrame {
-    private final ClienteController controlador;
-    private JTextField txtID, txtCuit, txtEmail, txtDireccion, txtAlias, txtCbu, txtLatitud, txtLongitud;
-    private JTextArea areaResultados;
-    private JButton btnCrear, btnBuscar, btnModificar, btnEliminar, btnListar;
+     final ClienteController controlador;
+     JTextField txtID, txtCuit, txtEmail, txtDireccion, txtAlias, txtCbu, txtLatitud, txtLongitud;
+     JTextArea areaResultados;
+     JButton btnCrear, btnBuscar, btnModificar, btnEliminar, btnListar;
 
     public GestionClientes(ClienteController controlador) {
         this.controlador = controlador;

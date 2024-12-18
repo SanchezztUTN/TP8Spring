@@ -44,7 +44,7 @@ public class ClienteMemory implements ClienteDAO {
                      "c.alias, c.cbu, co.latitud, co.longitud " +
                      "FROM Cliente c " +
                      "LEFT JOIN Coordenadas co ON c.id_coordenada = co.id_coordenada " +
-                     "WHERE c.id_cliente = ?";
+                     "WHERE c.id_cliente = ? AND c.deleted = FALSE";
         Cliente cliente = null;
 
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -176,20 +176,11 @@ public class ClienteMemory implements ClienteDAO {
 
     @Override
     public void eliminarCliente(long id) {
-        String sql = "DELETE FROM Cliente WHERE id_cliente = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, id);
-
-            int filasAfectadas = stmt.executeUpdate();
-
-            if (filasAfectadas == 0) {
-                throw new SQLException("No se encontró ningún cliente con ID: " + id);
-            } else {
-                System.out.println("Cliente con ID " + id + " eliminado correctamente.");
-            }
+        String sqlMarkAsDeleted = "UPDATE cliente SET deleted = TRUE WHERE id_cliente = ?";
+        try (PreparedStatement stmtMarkAsDeleted = connection.prepareStatement(sqlMarkAsDeleted)) {
+            stmtMarkAsDeleted.setLong(1, id);
+            stmtMarkAsDeleted.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error al eliminar el cliente con ID: " + id);
             e.printStackTrace();
         }
     }
@@ -199,7 +190,8 @@ public class ClienteMemory implements ClienteDAO {
         String sql = "SELECT c.id_cliente, c.cuit, c.email, c.direccion, c.id_coordenada, " +
                      "c.alias, c.cbu, co.latitud, co.longitud " +
                      "FROM Cliente c " +
-                     "LEFT JOIN Coordenadas co ON c.id_coordenada = co.id_coordenada";
+                     "LEFT JOIN Coordenadas co ON c.id_coordenada = co.id_coordenada " +
+                     "WHERE c.deleted = FALSE";
         Set<Cliente> clientes = new HashSet<>(); // Usamos HashSet para garantizar unicidad
 
         try (PreparedStatement stmt = connection.prepareStatement(sql);

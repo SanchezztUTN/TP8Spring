@@ -27,6 +27,11 @@ public class ItemsMenuController {
         return itemMenuService.buscarItem(id);
     }
 
+    @GetMapping
+    public List<ItemMenu> listarItems() {
+        return itemMenuService.listarItems();
+    }
+
     @PutMapping("/{id}")
     public String modificarItem(@PathVariable long id, @RequestBody ItemMenu item) {
         item.setId(id);
@@ -34,12 +39,7 @@ public class ItemsMenuController {
     }
 
     @DeleteMapping("/{id}")
-    public void eliminarItem(@PathVariable long id) {
+    public void eliminarItem(@PathVariable long id) throws ItemNoEncontradoException {
         itemMenuService.eliminarItem(id);
-    }
-
-    @GetMapping
-    public List<ItemMenu> listarItems() {
-        return itemMenuService.listarItems();
     }
 }

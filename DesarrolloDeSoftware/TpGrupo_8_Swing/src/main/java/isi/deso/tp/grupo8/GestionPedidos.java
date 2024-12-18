@@ -16,15 +16,15 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 public class GestionPedidos extends JFrame {
-    private PedidoController controlador;
-    private ClienteController clienteController;
-    private VendedorController vendedorController;
-    private ItemsMenuController itemsMenuController;
-    private JTextField txtIdPedido, txtIdCliente, txtIdVendedor;
-    private JTextArea areaResultados;
-    private JButton btnCrearPedido, btnModificarPedido, btnEliminarPedido, btnListarPedidos, btnMostrarItems, btnPagarPedido;
-    private JList<ItemMenu> listItemsMenu;
-    private Set<ItemMenu> itemsSeleccionados;
+    PedidoController controlador;
+    ClienteController clienteController;
+    VendedorController vendedorController;
+    ItemsMenuController itemsMenuController;
+    JTextField txtIdPedido, txtIdCliente, txtIdVendedor;
+    JTextArea areaResultados;
+    JButton btnCrearPedido, btnModificarPedido, btnEliminarPedido, btnListarPedidos, btnMostrarItems, btnPagarPedido, btnBuscarPedido;
+    JList<ItemMenu> listItemsMenu;
+    Set<ItemMenu> itemsSeleccionados;
 
     public GestionPedidos(PedidoController pedidoController,
                           ClienteController clienteController,
@@ -55,6 +55,7 @@ public class GestionPedidos extends JFrame {
         btnListarPedidos = new JButton("Listar Pedidos");
         btnMostrarItems = new JButton("Mostrar Items");
         btnPagarPedido = new JButton("Pagar Pedido");
+        btnBuscarPedido = new JButton("Buscar Pedido");
 
         add(new JLabel("ID Pedido:"));
         add(txtIdPedido);
@@ -71,6 +72,7 @@ public class GestionPedidos extends JFrame {
         add(btnEliminarPedido);
         add(btnListarPedidos);
         add(btnPagarPedido);
+        add(btnBuscarPedido);
         add(new JScrollPane(areaResultados));
 
         btnMostrarItems.addActionListener(this::mostrarItemsVendedor);
@@ -79,6 +81,7 @@ public class GestionPedidos extends JFrame {
         btnEliminarPedido.addActionListener(this::eliminarPedido);
         btnListarPedidos.addActionListener(e -> listarPedidos());
         btnPagarPedido.addActionListener(this::pagarPedido);
+        btnBuscarPedido.addActionListener(this::buscarPedido);
 
         setVisible(true);
     }
@@ -151,28 +154,56 @@ public class GestionPedidos extends JFrame {
                 System.out.println("Pedido encontrado con ID: " + idPedido);
                 System.out.println("Estado actual del pedido: " + pedido.getEstado());
     
-                // Modificar el estado del pedido
-                pedido.setEstado(EstadoPedido.RECIBIDO);
-                System.out.println("Nuevo estado del pedido: " + pedido.getEstado());
+                // Actualizar el cliente
+                long idCliente = Long.parseLong(txtIdCliente.getText());
+                Cliente cliente = clienteController.buscarCliente(idCliente);
+                if (cliente == null) {
+                    areaResultados.setText("Cliente no encontrado.");
+                    return;
+                }
+                pedido.setCliente(cliente);
     
-                // Actualizar en la base de datos
-                controlador.actualizarPedido(pedido);
+                // Actualizar el vendedor
+                long idVendedor = Long.parseLong(txtIdVendedor.getText());
+                Vendedor vendedor = vendedorController.buscarVendedor(idVendedor);
+                if (vendedor == null) {
+                    areaResultados.setText("Vendedor no encontrado.");
+                    return;
+                }
+                pedido.setVendedor(vendedor);
     
-                // Confirmación
-                areaResultados.setText("Pedido modificado exitosamente.");
-                System.out.println("Pedido con ID " + idPedido + " modificado exitosamente.");
+                // Actualizar los items del pedido
+                itemsSeleccionados.clear();
+                for (ItemMenu item : listItemsMenu.getSelectedValuesList()) {
+                    itemsSeleccionados.add(item);
+                }
+                ItemsPedidoMemory itemsPedidoMemory = new ItemsPedidoMemory();
+                for (ItemMenu item : itemsSeleccionados) {
+                    itemsPedidoMemory.agregarItem(item);
+                }
+                pedido.setItemsPedidoMemory(itemsPedidoMemory);
+    
+                // Calcular el nuevo monto total del pago
+                double nuevoMontoTotal = itemsPedidoMemory.getLista().stream()
+                        .mapToDouble(itemPedido -> itemPedido.getItemPedido().getPrecio())
+                        .sum();
+                Pago pago = pedido.getPago();
+                pago.setMonto(nuevoMontoTotal);
+    
+                // Open the payment window and pass the pedido
+                new GestionPago(pedido);
+                // Do not call controlador.actualizarPedido here
+    
             } else {
                 areaResultados.setText("Pedido no encontrado.");
                 System.out.println("No se encontró un pedido con el ID " + idPedido);
             }
-        }catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             // Manejar error al parsear el ID
             areaResultados.setText("Error: Por favor, ingresa un ID de pedido válido.");
             System.out.println("Error al parsear el ID: " + ex.getMessage());
             ex.printStackTrace();
-        }
-        // Manejar errores SQL
-         catch (Exception ex) {
+        } catch (Exception ex) {
             // Manejar otros errores
             areaResultados.setText("Error al modificar el pedido: " + ex.getMessage());
             System.out.println("Error inesperado al modificar el pedido: " + ex.getMessage());
@@ -251,6 +282,56 @@ public class GestionPedidos extends JFrame {
             areaResultados.setText("Error: Por favor, ingresa un ID de pedido válido.");
         } catch (Exception ex) {
             areaResultados.setText("Error al pagar el pedido: " + ex.getMessage());
+        }
+    }
+
+    private void buscarPedido(ActionEvent e) {
+        try {
+            long idPedido = Long.parseLong(txtIdPedido.getText());
+            Pedido pedido = controlador.buscarPedido(idPedido);
+            if (pedido != null) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("ID Pedido: ").append(pedido.getId()).append("\n")
+                  .append("Cliente ID: ").append(pedido.getCliente().getId()).append("\n")
+                  .append("Vendedor ID: ").append(pedido.getVendedor().getId()).append("\n")
+                  .append("Estado: ").append(pedido.getEstado()).append("\n")
+                  .append("Método de Pago: ").append(pedido.getMetodoDePago()).append("\n");
+
+                Pago pago = pedido.getPago();
+                if (pago != null) {
+                    sb.append("Pago ID: ").append(pago.getId()).append("\n")
+                      .append("Monto: ").append(pago.getMonto()).append("\n")
+                      .append("Fecha: ").append(pago.getFecha()).append("\n")
+                      .append("Tipo: ").append(pago.getTipoPago()).append("\n");
+
+                    if (pago instanceof PagoPorMP) {
+                        PagoPorMP pagoMP = (PagoPorMP) pago;
+                        sb.append("Alias: ").append(pagoMP.getAlias()).append("\n")
+                          .append("Recargo: ").append(pagoMP.getRecargo()).append("\n");
+                    } else if (pago instanceof PagoPorTransferencia) {
+                        PagoPorTransferencia pagoTrans = (PagoPorTransferencia) pago;
+                        sb.append("CBU: ").append(pagoTrans.getCbu()).append("\n")
+                          .append("CUIT: ").append(pagoTrans.getCuit()).append("\n")
+                          .append("Recargo: ").append(pagoTrans.getRecargo()).append("\n");
+                    }
+                }
+
+                sb.append("Items del Pedido:\n");
+                for (ItemPedido itemPedido : pedido.getItemsPedidoMemory().getLista()) {
+                    ItemMenu item = itemPedido.getItemPedido();
+                    sb.append("  ID: ").append(item.getId())
+                      .append(", Nombre: ").append(item.getNombre())
+                      .append(", Precio: ").append(item.getPrecio()).append("\n");
+                }
+
+                areaResultados.setText(sb.toString());
+            } else {
+                areaResultados.setText("Pedido no encontrado.");
+            }
+        } catch (NumberFormatException ex) {
+            areaResultados.setText("Por favor, ingresa un ID de pedido válido.");
+        } catch (Exception ex) {
+            areaResultados.setText("Error al buscar el pedido: " + ex.getMessage());
         }
     }
 

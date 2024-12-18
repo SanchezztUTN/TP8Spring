@@ -40,7 +40,9 @@ public class PedidoController {
     public void actualizarPedido(Pedido pedido) {
         pedidoDAO.actualizarPedido(pedido);
     }
-
+    public void actualizarPago(Pago pago) {
+        pedidoDAO.actualizarPago(pago);
+    }
     public void eliminarPedido(long id) {
         pedidoDAO.eliminarPedido(id);
     }

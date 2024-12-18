@@ -1,11 +1,11 @@
 package com.example.isi.deso.tp_7;
 
-import java.util.List;
+import java.util.Set;
 
 public class PedidoDTO {
     private long id;
     private Cliente cliente;
-    private List<ItemPedido> itemsPedidoMemory;
+    private Set<ItemMenu> items;
     private Pago pago;
     private VendedorDTO vendedor;
     private EstadoPedido estado;
@@ -15,7 +15,7 @@ public class PedidoDTO {
     public PedidoDTO(Pedido pedido) {
         this.id = pedido.getId();
         this.cliente = pedido.getCliente();
-        this.itemsPedidoMemory = pedido.getItemsPedidoMemory();
+        this.items = pedido.getItems();
         this.pago = pedido.getPago();
         this.vendedor = new VendedorDTO(pedido.getVendedor());
         this.estado = pedido.getEstado();
@@ -40,12 +40,12 @@ public class PedidoDTO {
         this.cliente = cliente;
     }
 
-    public List<ItemPedido> getItemsPedidoMemory() {
-        return itemsPedidoMemory;
+    public Set<ItemMenu> getItems() {
+        return items;
     }
 
-    public void setItemsPedidoMemory(List<ItemPedido> itemsPedidoMemory) {
-        this.itemsPedidoMemory = itemsPedidoMemory;
+    public void setItems(Set<ItemMenu> items) {
+        this.items = items;
     }
 
     public Pago getPago() {

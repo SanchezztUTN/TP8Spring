@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import '../App.css'; // Correct the path to App.css
 
-const PedidoForm = ({ fetchPedidos }) => {
+const PedidoForm = ({ fetchPedidos, pedidoToEdit, onCancelEdit }) => {
     const [pedido, setPedido] = useState({
         vendedorId: '',
         clienteId: '',
@@ -14,15 +14,33 @@ const PedidoForm = ({ fetchPedidos }) => {
     const [totalPrice, setTotalPrice] = useState(0);
 
     useEffect(() => {
+        if (pedidoToEdit) {
+            setPedido({
+                vendedorId: pedidoToEdit.vendedor.id,
+                clienteId: pedidoToEdit.cliente.id,
+                itemMenuIds: pedidoToEdit.items ? Array.from(pedidoToEdit.items).map(item => item.id) : [],
+                tipoPago: pedidoToEdit.metodoDePago
+            });
+            setSelectedItems(pedidoToEdit.items ? Array.from(pedidoToEdit.items).map(item => item.id.toString()) : []);
+        }
+    }, [pedidoToEdit]);
+
+    useEffect(() => {
         if (pedido.vendedorId) {
             axios.get(`http://localhost:8080/vendedores/${pedido.vendedorId}/items`)
                 .then(response => {
-                    setItems(response.data);
+                    setItems(Array.isArray(response.data) ? response.data : []);
                 })
                 .catch(error => {
                     console.error('There was an error fetching the items!', error);
+                    setItems([]); // Set items to an empty array in case of error
                 });
         }
+    }, [pedido.vendedorId]);
+
+    // Clear selected items when vendedorId changes
+    useEffect(() => {
+        setSelectedItems([]);
     }, [pedido.vendedorId]);
 
     const calculateTotalPrice = useCallback(() => {
@@ -58,7 +76,11 @@ const PedidoForm = ({ fetchPedidos }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         const itemMenuIdsArray = selectedItems.map(id => parseInt(id, 10));
-        axios.post('http://localhost:8080/pedidos', { ...pedido, itemMenuIds: itemMenuIdsArray })
+        const request = pedidoToEdit
+            ? axios.put(`http://localhost:8080/pedidos/${pedidoToEdit.id}`, { ...pedido, itemMenuIds: itemMenuIdsArray })
+            : axios.post('http://localhost:8080/pedidos', { ...pedido, itemMenuIds: itemMenuIdsArray });
+
+        request
             .then(() => {
                 fetchPedidos();
                 setPedido({
@@ -69,15 +91,16 @@ const PedidoForm = ({ fetchPedidos }) => {
                 });
                 setSelectedItems([]);
                 setTotalPrice(0);
+                if (onCancelEdit) onCancelEdit();
             })
             .catch(error => {
-                console.error('There was an error creating the pedido!', error);
+                console.error('There was an error saving the pedido!', error);
             });
     };
 
     return (
         <form onSubmit={handleSubmit} className="container">
-            <h2>Crear Pedido</h2>
+            <h2>{pedidoToEdit ? 'Modificar Pedido' : 'Crear Pedido'}</h2>
             <div className="entradas">
                 <label>Vendedor ID</label>
                 <input type="text" name="vendedorId" value={pedido.vendedorId} onChange={handleChange} placeholder="Vendedor ID" required />
@@ -88,14 +111,18 @@ const PedidoForm = ({ fetchPedidos }) => {
             </div>
             <div className="entradas">
                 <h3>Items del Vendedor</h3>
-                {items.map(item => (
-                    <div key={item.id}>
-                        <label>
-                            <input type="checkbox" value={item.id} onChange={handleItemChange} />
-                            {item.nombre} - ${item.precio}
-                        </label>
-                    </div>
-                ))}
+                {Array.isArray(items) && items.length > 0 ? (
+                    items.map(item => (
+                        <div key={item.id}>
+                            <label>
+                                <input type="checkbox" value={item.id} onChange={handleItemChange} checked={selectedItems.includes(item.id.toString())} />
+                                {item.nombre} - ${item.precio}
+                            </label>
+                        </div>
+                    ))
+                ) : (
+                    <p>El vendedor no tiene Items</p>
+                )}
             </div>
             <div className="entradas">
                 <h3>Tipo de Pago</h3>
@@ -111,7 +138,10 @@ const PedidoForm = ({ fetchPedidos }) => {
             <div>
                 <h3>Precio Total: ${totalPrice.toFixed(2)}</h3>
             </div>
-            <button type="submit">Crear</button>
+            <div className="botones-acep-cancel">
+                <button type="submit" className="btn-aceptar">{pedidoToEdit ? 'Modificar' : 'Crear'}</button>
+                {pedidoToEdit && <button type="button" className="btn-cancelar" onClick={onCancelEdit}>Cancelar</button>}
+            </div>
         </form>
     );
 };

@@ -5,12 +5,14 @@ public class VendedorDTO {
     private String nombre;
     private String direccion;
     private Coordenada coordenada;
+    private boolean deleted;
 
     public VendedorDTO(Vendedor vendedor) {
         this.id = vendedor.getId();
         this.nombre = vendedor.getNombre();
         this.direccion = vendedor.getDireccion();
         this.coordenada = vendedor.getCoordenada();
+        this.deleted = vendedor.isDeleted();
     }
 
     // Getters and setters
@@ -44,5 +46,13 @@ public class VendedorDTO {
 
     public void setCoordenada(Coordenada coordenada) {
         this.coordenada = coordenada;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

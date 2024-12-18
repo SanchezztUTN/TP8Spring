@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -32,9 +33,15 @@ public class PedidoController {
     }
 
     @PutMapping("/{id}")
-    public PedidoDTO actualizarPedido(@PathVariable long id, @RequestBody Pedido pedido) {
-        pedido.setId(id);
-        Pedido updatedPedido = pedidoService.actualizarPedido(pedido);
+    public PedidoDTO actualizarPedido(@PathVariable long id, @RequestBody PedidoRequest pedidoRequest) {
+        Pedido pedido = pedidoService.buscarPedido(id).orElseThrow(() -> new IllegalArgumentException("Pedido with ID " + id + " does not exist."));
+        Pedido updatedPedido = pedidoService.actualizarPedido(
+            pedido,
+            pedidoRequest.getVendedorId(),
+            pedidoRequest.getClienteId(),
+            pedidoRequest.getItemMenuIds(),
+            pedidoRequest.getTipoPago()
+        );
         return new PedidoDTO(updatedPedido);
     }
 
@@ -49,7 +56,7 @@ public class PedidoController {
     }
 
     @GetMapping("/{id}/items")
-    public List<ItemPedido> listarItemsPedido(@PathVariable long id) {
+    public Set<ItemMenu> listarItemsPedido(@PathVariable long id) {
         return pedidoService.listarItemsPedido(id);
     }
 }

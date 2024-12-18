@@ -49,6 +49,10 @@ public void crearNuevoVendedor(String nombre, String direccion, Coordenada coord
         vendedorDAO.agregarItemMenu(idVendedor, idItemMenu);
     }
 
+    public void eliminarItemMenuDeVendedor(long idVendedor, long idItemMenu) {
+        vendedorDAO.eliminarItemMenu(idVendedor, idItemMenu);
+    }
+
     public Set<ItemMenu> obtenerListaProductosVendedor(long idVendedor) {
         return vendedorDAO.obtenerListaProductos(idVendedor);
     }

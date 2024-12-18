@@ -15,7 +15,8 @@ const ItemMenuList = () => {
     const fetchItems = () => {
         axios.get('http://localhost:8080/items')
             .then(response => {
-                setItems(response.data);
+                const activeItems = response.data.filter(item => !item.deleted);
+                setItems(activeItems);
             })
             .catch(error => {
                 console.error('There was an error fetching the items!', error);

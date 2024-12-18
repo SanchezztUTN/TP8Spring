@@ -14,11 +14,11 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class GestionItemsMenu extends JFrame {
-    private final ItemsMenuController controlador;
-    private JTextField txtID, txtNombre, txtDescripcion, txtPrecio, txtCalorias, txtVolumen, txtAlcohol, txtPeso, txtIdCategoria;
-    private JCheckBox chkCeliacos, chkVegetariano;
-    private JTextArea areaResultados;
-    private JButton btnCrearPlato, btnCrearBebida, btnBuscar, btnModificar, btnEliminar, btnListar;
+    final ItemsMenuController controlador;
+     JTextField txtID, txtNombre, txtDescripcion, txtPrecio, txtCalorias, txtVolumen, txtAlcohol, txtPeso, txtIdCategoria;
+     JCheckBox chkCeliacos, chkVegetariano;
+     JTextArea areaResultados;
+     JButton btnCrearPlato, btnCrearBebida, btnBuscar, btnModificar, btnEliminar, btnListar;
 
     public GestionItemsMenu(ItemsMenuController controlador) {
         this.controlador = controlador;

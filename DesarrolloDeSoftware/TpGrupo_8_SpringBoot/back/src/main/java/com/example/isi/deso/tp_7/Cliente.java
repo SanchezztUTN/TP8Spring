@@ -21,6 +21,7 @@ public class Cliente {
     
     private String alias;
     private String cbu;
+    private boolean deleted = false;
 
     @OneToMany(mappedBy = "cliente", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
@@ -95,6 +96,14 @@ public class Cliente {
 
     public void setCbu(String cbu) {
         this.cbu = cbu;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     public List<Pedido> getPedidos() {

@@ -1,4 +1,4 @@
-package com.example.isi.deso.tp_7;
+/*package com.example.isi.deso.tp_7;
 
 
 import java.util.Set;
@@ -9,3 +9,4 @@ public interface ItemsPedidoDao {
     Set<ItemPedido> busquedaPorRangodePecios(double min, double max) throws ItemNoEncontradoException ;
     Set<ItemPedido> buscarPorRestaurante(Vendedor v) throws ItemNoEncontradoException;
 }
+/* */
